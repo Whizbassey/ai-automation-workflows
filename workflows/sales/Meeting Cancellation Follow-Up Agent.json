@@ -1,0 +1,267 @@
+{
+  "name": "SALES_Auto-Follow-Up for Canceled Calendly Meetings with GPT-4, Loom & Asana",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚙️ Workflow Breakdown  \n1. **Calendly Webhook Trigger:** Fires when a user cancels a scheduled event.  \n2. **Edit Fields:** Extracts name, email, event type, and reason from the webhook.  \n3. **GPT Message Generator:** Uses OpenAI to draft a personalized follow-up message.  \n4. **Loom Link Injection:** Adds your pre-recorded Loom video URL to the output.  \n5. **Merge:** Combines GPT message with user details and Loom link.  \n6. **Send Gmail Message:** Sends the tailored follow-up via Gmail.  \n7. **Create Asana Task:** Logs the missed call and Loom link for manual follow-up.",
+        "height": 240,
+        "width": 624,
+        "color": 4
+      },
+      "id": "5bfb5129-2770-463f-9a91-4a4c9b555116",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3216,
+        560
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "events": [
+          "invitee.canceled"
+        ]
+      },
+      "id": "75c3e26b-34b6-40d1-8725-983975a628c1",
+      "name": "Trigger on Meeting Cancellation",
+      "type": "n8n-nodes-base.calendlyTrigger",
+      "position": [
+        2400,
+        928
+      ],
+      "webhookId": "2e498516-c66c-404c-9222-d9ed6533a6ee",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"event\": \"invitee.canceled\",\n  \"payload\": {\n    \"event_type\": {\n      \"name\": \"Discovery Call\"\n    },\n    \"scheduled_event\": {\n      \"start_time\": \"2025-07-23T14:00:00Z\"\n    },\n    \"cancel_reason\": \"Something came up\",\n    \"invitee\": {\n      \"name\": \"Sarah Johnson\",\n      \"email\": \"sarah@example.com\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "9837aba5-f367-417d-bb77-e218669efa23",
+      "name": "Extract Meeting Info",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2896,
+        928
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a helpful assistant that writes friendly, casual emails in a warm and natural tone.\n\nWrite only the email body — do not include a subject line or greeting like “Subject:”\nUse this context: [insert payload here]",
+              "role": "system"
+            },
+            {
+              "content": "=Write a short, friendly follow-up email for someone who just canceled our scheduled meeting. Their name is {{ $json[\"payload\"][\"invitee\"][\"name\"] }}.\n\nKeep the tone casual and warm.\n\nLet them know it’s totally fine, but you recorded a quick Loom video in case they still want to check it out. End with a light invitation to reschedule if they’d like."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5c1c2c96-fb1f-4bb0-b3b6-f1b4821e5fd3",
+      "name": "Write Follow-Up Message (GPT)",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        3360,
+        992
+      ],
+      "typeVersion": 1.8
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b9bf2ffb-d054-45e5-beaf-fec53279aa2f",
+              "name": "loom_link",
+              "type": "string",
+              "value": "https://www.loom.com/share/970a3fba1ed44352a2194f1ef6a8dc45"
+            },
+            {
+              "id": "244e1c42-e468-44d0-8b8a-8564e33e6633",
+              "name": "subject",
+              "type": "string",
+              "value": "Sorry we missed each other — here’s a quick video"
+            },
+            {
+              "id": "13ce91ca-e10f-43cc-8342-e7c1b6d4fcd9",
+              "name": "email_body",
+              "type": "string",
+              "value": "={{ $json[\"message\"][\"content\"] + \"\\n\\nWatch here: https://www.loom.com/share/970a3fba1ed44352a2194f1ef6a8dc45\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5526f0d0-3edf-4941-993b-af89a131630a",
+      "name": "Add Loom Video URL",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        3936,
+        992
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "8c7d279f-8040-472c-aa6f-4706a61450cd",
+      "name": "Merge Message & Video",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        4352,
+        912
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json[\"payload\"][\"invitee\"][\"email\"] }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.email_body }}",
+        "options": {}
+      },
+      "id": "0465ac4e-59b9-41eb-977c-db1c5c2262c8",
+      "name": "Send Email with Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        4864,
+        672
+      ],
+      "webhookId": "3c1516df-b824-4c91-ae15-f86f3df39732",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "workspace": "1210873801747271",
+        "name": "=Follow-up with {{ $json.payload.invitee.name }} after missed call",
+        "otherProperties": {
+          "assignee": "1210873801747258",
+          "notes": "=Missed meeting with {{ $json.payload.invitee.name }}.\nEmail sent with this Loom: {{ $json.loom_link }}",
+          "projects": [
+            "1210873956748877"
+          ]
+        }
+      },
+      "id": "445db016-07b9-49a8-a4de-a7057291c75f",
+      "name": "Create Task in Asana",
+      "type": "n8n-nodes-base.asana",
+      "position": [
+        4880,
+        1184
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Add Loom Video URL": {
+      "main": [
+        [
+          {
+            "node": "Merge Message & Video",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Create Task in Asana": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Meeting Info": {
+      "main": [
+        [
+          {
+            "node": "Write Follow-Up Message (GPT)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Message & Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Message & Video": {
+      "main": [
+        [
+          {
+            "node": "Send Email with Gmail",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Task in Asana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email with Gmail": {
+      "main": [
+        []
+      ]
+    },
+    "Write Follow-Up Message (GPT)": {
+      "main": [
+        [
+          {
+            "node": "Add Loom Video URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger on Meeting Cancellation": {
+      "main": [
+        [
+          {
+            "node": "Extract Meeting Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9d58c05d-9dfe-4bbe-9ea6-42c9d7223b16",
+  "meta": {
+    "templateId": "6386",
+    "instanceId": "90875c0b34110a5edc13bdc717d28e4261485f1f1cbd289446549db71e3e1568"
+  },
+  "id": "u6QtOYcGivMfHFxm",
+  "tags": [
+    {
+      "createdAt": "2025-09-02T12:52:44.713Z",
+      "updatedAt": "2025-09-02T12:52:44.713Z",
+      "id": "twfHZLftaxk54cPj",
+      "name": "Create and Setup"
+    }
+  ]
+}

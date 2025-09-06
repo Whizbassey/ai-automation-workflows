@@ -1,0 +1,353 @@
+{
+  "name": "SALES_Scrape Public Email Addresses From Any Website Using Firecrawl",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Email Scraper",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Website Url",
+              "placeholder": "https://aitools.inc",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "579a6ba6-3b53-4113-a497-f58bad82141a",
+      "name": "form_trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        432,
+        512
+      ],
+      "webhookId": "7507734f-cf1f-49d5-a996-0bcd1bc7bebf",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/map",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $json['Website Url'] }}\",\n  \"search\": \"about contact company authors team\",\n  \"limit\": 5\n}",
+        "options": {}
+      },
+      "id": "5aaea2b9-796c-4540-9a10-ef667a23df21",
+      "name": "map_website",
+      "type": "n8n-nodes-base.httpRequest",
+      "maxTries": 5,
+      "position": [
+        672,
+        512
+      ],
+      "retryOnFail": true,
+      "typeVersion": 4.2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/batch/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"urls\": {{ JSON.stringify($json.links) }},\n  \"formats\": [\"markdown\", \"json\"],\n  \"proxy\": \"stealth\",\n  \"jsonOptions\": {\n    \"prompt\": \"Extract every unique, fully-qualified email address found in the supplied web page. Normalize common obfuscations where “@” appears as “(at)”, “[at]”, “{at}”, “ at ”, “&#64;” and “.” appears as “(dot)”, “[dot]”, “{dot}”, “ dot ”, “&#46;”. Convert variants such as “user(at)example(dot)com” or “user at example dot com” to “user@example.com”. Ignore addresses hidden inside HTML comments, <script>, or <style> blocks. Deduplicate case-insensitively. The addresses shown in the example output below (e.g., “user@example.com”, “info@example.com”, “support@sample.org”) are placeholders; include them only if they genuinely exist on the web page.\",\n    \"schema\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"email_addresses\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\",\n            \"format\": \"email\",\n            \"description\": \"A valid email address found and extracted from the page\"\n          },\n          \"description\": \"An array of all email addresses found on the web page\"\n        }\n      },\n      \"required\": [\"emails\"]\n    }\n  }\n}",
+        "options": {}
+      },
+      "id": "5634b31e-a44a-4ec4-b03a-63489c252afc",
+      "name": "start_batch_scrape",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        928,
+        512
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "7e16bcbe-7ea6-48ca-b98e-5b0ec18be8c3",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              },
+              "leftValue": "={{ $runIndex }}",
+              "rightValue": 12
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d677a2d7-a291-4602-a8a2-98e551f5fe01",
+      "name": "check_retry_count",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        2016,
+        672
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "errorMessage": "Too many retries when attempting to scrape website."
+      },
+      "id": "b699b42c-3442-483e-9bd8-e69ce16b26ae",
+      "name": "too_many_attempts_error",
+      "type": "n8n-nodes-base.stopAndError",
+      "position": [
+        2336,
+        752
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "2b1fd9bf-c226-4a22-a875-1440504435fc",
+      "name": "rate_limit_wait",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        1200,
+        512
+      ],
+      "webhookId": "3a93d231-a459-4747-b124-4229372407a8",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9efaad04-014a-45a4-9760-1b3edbf51c8d",
+              "name": "scraped_email_addresses",
+              "type": "array",
+              "value": "={{\n  ($node[\"fetch_scrape_results\"].json.data || [])\n    .flatMap(item => item?.json?.email_addresses || [])\n    .filter(email => typeof email === 'string' && email.trim())\n}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2945391-a9ea-4aec-94f5-186c2e28cd15",
+      "name": "set_result",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2336,
+        480
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cc296f33-b896-49c7-898c-4d8b5f11266a",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6fb1c4bb-a72e-4dc4-a063-15fb5162b57f",
+      "name": "check_scrape_completed",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1728,
+        512
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "url": "=https://api.firecrawl.dev/v1/batch/scrape/{{ $('start_batch_scrape').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aaaaf352-57cc-4730-ab62-56f4b1aad551",
+      "name": "fetch_scrape_results",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1456,
+        512
+      ],
+      "typeVersion": 4.2
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "set_result": {
+      "main": [
+        []
+      ]
+    },
+    "map_website": {
+      "main": [
+        [
+          {
+            "node": "start_batch_scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "form_trigger": {
+      "main": [
+        [
+          {
+            "node": "map_website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "rate_limit_wait": {
+      "main": [
+        [
+          {
+            "node": "fetch_scrape_results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_retry_count": {
+      "main": [
+        [
+          {
+            "node": "too_many_attempts_error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "rate_limit_wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start_batch_scrape": {
+      "main": [
+        [
+          {
+            "node": "rate_limit_wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fetch_scrape_results": {
+      "main": [
+        [
+          {
+            "node": "check_scrape_completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_scrape_completed": {
+      "main": [
+        [
+          {
+            "node": "set_result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "check_retry_count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "499efad5-0491-4bf2-a45d-2552b9a80a2b",
+  "meta": {
+    "templateId": "5786",
+    "instanceId": "90875c0b34110a5edc13bdc717d28e4261485f1f1cbd289446549db71e3e1568"
+  },
+  "id": "9eGSFgl3obORlgeq",
+  "tags": [
+    {
+      "createdAt": "2025-09-02T12:52:44.713Z",
+      "updatedAt": "2025-09-02T12:52:44.713Z",
+      "id": "twfHZLftaxk54cPj",
+      "name": "Create and Setup"
+    },
+    {
+      "name": "Downloaded",
+      "id": "i1zTjEOsmVWLFM9n",
+      "createdAt": "2025-09-06T03:01:37.278Z",
+      "updatedAt": "2025-09-06T03:01:37.278Z"
+    }
+  ]
+}

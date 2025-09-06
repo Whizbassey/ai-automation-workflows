@@ -1,0 +1,400 @@
+{
+  "name": "SALES_ AI Client Onboarding Agent: Auto Welcome Email Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "66045c99-118c-4302-807e-c4279d1a47a2",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "position": [
+        496,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "3cc38fca-c0c9-4c9f-90f1-a9d0ece9522c",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [
+        1760,
+        800
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "7b745afe-49a5-4cd6-aa03-a0dae214e908",
+      "name": "Execution Completed",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1760,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "0ea5c7e9-78b8-446a-bae1-802a5ecab399",
+      "name": "Execution Failure",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1952,
+        800
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9c81e80-f2f2-436d-a6cf-48882b0f72ea",
+              "name": "=Checklist",
+              "type": "string",
+              "value": "=\"Checklist\": \"\n1. Account setup\n2. Welcome call scheduled\n3. Document collection\n4. Service configuration\n5. Onboarding session\n6. First milestone review"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e79e67c4-9de6-4287-86b9-e2cd6b884f52",
+      "name": "Client Checklist",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1120,
+        480
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "id": "daa90481-fb59-47ff-9aa1-14e33a42d459",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        1280,
+        992
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "📤 Email the customized onboarding checklist  \nto the client using their submitted email address\n",
+        "height": 100,
+        "width": 200,
+        "color": 3
+      },
+      "id": "5907c579-44bf-47e4-b38e-944700e8e540",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1520,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "✅ Indicates successful end of execution\n",
+        "height": 100,
+        "width": 200,
+        "color": 4
+      },
+      "id": "f6abbdf9-156f-45cc-bb16-ccb619a3fba7",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1760,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🚨 Handles errors from any node above  \nCan trigger notifications or log the failure\n",
+        "height": 100,
+        "width": 200,
+        "color": 4
+      },
+      "id": "2ccb5b9b-4d4b-4615-a8cd-c9aed234b75b",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2000,
+        992
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "❌ Catch any errors during execution  \nand take fallback or alerting action\n",
+        "height": 100,
+        "width": 200,
+        "color": 3
+      },
+      "id": "4aaef60e-2e14-416c-9d01-6d8a692afc20",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1728,
+        992
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🧠 Send prompt to Gemini API to tailor checklist  \nbased on client name, company, and selected services\n",
+        "height": 100,
+        "width": 200,
+        "color": 2
+      },
+      "id": "0720cde8-e4a3-4e75-a9d5-9a72d67a041c",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1296,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "📋 Set the default onboarding checklist items\n",
+        "height": 100,
+        "width": 200,
+        "color": 4
+      },
+      "id": "76186e1d-a5e5-4935-bec9-8abf6494c5f9",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "🧍 Extract client details: name, email, company, services\n",
+        "height": 100,
+        "width": 200
+      },
+      "id": "099c44da-a685-492f-ad8c-5001d181e37f",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        832,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "⏰ Trigger when a new row is added  \n(Google Form response stored in Google Sheet)\n",
+        "height": 100,
+        "width": 200,
+        "color": 6
+      },
+      "id": "7eb2540f-77bc-472f-927b-db19a59af74c",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        608,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "19Hvti1sX6SvjP1Kj8dWFEiksiqn1FJVBoMToP2X6xBw",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19Hvti1sX6SvjP1Kj8dWFEiksiqn1FJVBoMToP2X6xBw/edit?usp=drivesdk",
+          "cachedResultName": "Onboarding"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": 1635870855,
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19Hvti1sX6SvjP1Kj8dWFEiksiqn1FJVBoMToP2X6xBw/edit#gid=1635870855",
+          "cachedResultName": "Form Responses 1"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "id": "d4d0d056-f14e-4ba0-9800-680854b25a3a",
+      "name": "Trigger on New Client Form Submission",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "position": [
+        688,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7c333d8f-04cd-4987-9c30-4c7bc26baecb",
+              "name": "fields",
+              "type": "string",
+              "value": "=Name:  {{ $json['Client name'] }} \nEmail:  {{ $json[' email '] }}\nCompany: {{ $json['  Company Name  '] }}\nService Needed: {{ $json['  Services Needed  '] }}\nOther info: {{ $json['  Any other onboarding info  '] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c74110eb-1e8e-4836-93a7-76e8bc0a82f2",
+      "name": "Extract and Structure Client Data",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        896,
+        480
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Give me an onboarding check list for an email to the client, give me only email body and don't generate extra text like \"Okay, here's an email template ...\" and start and end on new lines\nstart with:\nHi {{ $('Trigger on New Client Form Submission').item.json['Client name'] }}, \nand end with \nBest regards,\nYour {{ $('Trigger on New Client Form Submission').item.json['  Company Name  '] }} Team\n\n:\nAlso use information from checklist and Fields below\n {{ $json.Checklist }}\n\nFields: {{ $('Extract and Structure Client Data').item.json.fields }}"
+      },
+      "id": "93822f2f-1013-4231-9602-3337fee939c8",
+      "name": "Personalize Using Gemini",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        1248,
+        480
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Trigger on New Client Form Submission').item.json[' email '] }}",
+        "subject": "=Welcome to Our Service,  {{ $('Trigger on New Client Form Submission').item.json['Client name'] }} ",
+        "message": "= {{ $json.text }}",
+        "options": {}
+      },
+      "id": "03c3ee91-0d15-44a3-8426-7d9181a9876f",
+      "name": "Send Email to Client",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        1552,
+        480
+      ],
+      "webhookId": "2a07b507-23a6-4bfb-adff-997d30ea3dfa",
+      "typeVersion": 2.1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Execution Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Client Checklist": {
+      "main": [
+        [
+          {
+            "node": "Personalize Using Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Personalize Using Gemini",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Personalize Using Gemini": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Client",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execution Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract and Structure Client Data": {
+      "main": [
+        [
+          {
+            "node": "Client Checklist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger on New Client Form Submission": {
+      "main": [
+        [
+          {
+            "node": "Extract and Structure Client Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1a0123d9-770c-46e6-8a64-0a55c3f47aeb",
+  "meta": {
+    "templateId": "4448",
+    "instanceId": "90875c0b34110a5edc13bdc717d28e4261485f1f1cbd289446549db71e3e1568"
+  },
+  "id": "UKiKNMtdEKhluC0q",
+  "tags": [
+    {
+      "name": "Downloaded",
+      "id": "i1zTjEOsmVWLFM9n",
+      "createdAt": "2025-09-06T03:01:37.278Z",
+      "updatedAt": "2025-09-06T03:01:37.278Z"
+    },
+    {
+      "createdAt": "2025-09-02T12:52:44.713Z",
+      "updatedAt": "2025-09-02T12:52:44.713Z",
+      "id": "twfHZLftaxk54cPj",
+      "name": "Create and Setup"
+    }
+  ]
+}

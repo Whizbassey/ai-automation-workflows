@@ -1,0 +1,323 @@
+{
+  "name": "SALES_Automated Zoho Inventory to Supabase Product Data Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "111cf5b9-cf9e-4a1a-9120-f2938207fac5",
+      "name": "Scheduled Trigger1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        1184,
+        384
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://accounts.zoho.in/oauth/v2/token",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "refresh_token",
+              "value": "your refresh token here"
+            },
+            {
+              "name": "client_id",
+              "value": "your client id here"
+            },
+            {
+              "name": "client_secret",
+              "value": "your client secret here"
+            },
+            {
+              "name": "grant_type",
+              "value": "refresh_token"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "24a43bf2-fd13-4c2a-9c8b-45687aa136ed",
+      "name": "POST to Zoho API for Access Token1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1488,
+        384
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "https://www.zohoapis.in/inventory/v1/items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "organization_id",
+              "value": "your organization id here"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Zoho-oauthtoken {{ $json.access_token }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6f450435-efb3-4ee7-bfe2-3950018c05f0",
+      "name": "GET to Zoho Inventory for Listed Items1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1824,
+        384
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "id": "433dba2c-a9a9-4c8b-af95-c884cdff3f62",
+      "name": "Split for better organisation1",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        2016,
+        384
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "tableId": "Fairy Frills",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "Product ID",
+              "fieldValue": "={{ $json.items.group_id }}"
+            },
+            {
+              "fieldId": "Product Name",
+              "fieldValue": "={{ $json.items.group_name }}"
+            },
+            {
+              "fieldId": "Brand",
+              "fieldValue": "={{ $json.items.brand }}"
+            },
+            {
+              "fieldId": "Variant ID",
+              "fieldValue": "={{ $json.items.item_id }}"
+            },
+            {
+              "fieldId": "Is Returnable Item",
+              "fieldValue": "={{ $json.items.is_returnable }}"
+            },
+            {
+              "fieldId": "AttributeName1",
+              "fieldValue": "={{ $json.items.attribute_name1 }}"
+            },
+            {
+              "fieldId": "AttributeType1",
+              "fieldValue": "={{ $json.items.attribute_type1 }}"
+            },
+            {
+              "fieldId": "AttributeName2",
+              "fieldValue": "={{ $json.items.attribute_name2 }}"
+            },
+            {
+              "fieldId": "AttributeType2",
+              "fieldValue": "={{ $json.items.attribute_type2 }}"
+            },
+            {
+              "fieldId": "AttributeName3",
+              "fieldValue": "={{ $json.items.attribute_name3 }}"
+            },
+            {
+              "fieldId": "AttributeType3",
+              "fieldValue": "={{ $json.items.attribute_type3 }}"
+            },
+            {
+              "fieldId": "Tags",
+              "fieldValue": "={{ $json.items.tags }}"
+            },
+            {
+              "fieldId": "Unit",
+              "fieldValue": "={{ $json.items.unit }}"
+            },
+            {
+              "fieldId": "Item Type",
+              "fieldValue": "={{ $json.items.item_type }}"
+            },
+            {
+              "fieldId": "Variant Name",
+              "fieldValue": "={{ $json.items.item_name }}"
+            },
+            {
+              "fieldId": "SKU",
+              "fieldValue": "={{ $json.items.sku }}"
+            },
+            {
+              "fieldId": "AttributeOptionData2",
+              "fieldValue": "={{ $json.items.attribute_option_data2 }}"
+            },
+            {
+              "fieldId": "AttributeOptionData3",
+              "fieldValue": "={{ $json.items.attribute_option_data3 }}"
+            },
+            {
+              "fieldId": "Stock On Hand",
+              "fieldValue": "={{ $json.items.stock_on_hand }}"
+            },
+            {
+              "fieldId": "UPC",
+              "fieldValue": "={{ $json.items.upc }}"
+            },
+            {
+              "fieldId": "EAN",
+              "fieldValue": "={{ $json.items.ean }}"
+            },
+            {
+              "fieldId": "ISBN",
+              "fieldValue": "={{ $json.items.isbn }}"
+            },
+            {
+              "fieldId": "Status",
+              "fieldValue": "={{ $json.items.status }}"
+            },
+            {
+              "fieldId": "Part Number",
+              "fieldValue": "={{ $json.items.part_number }}"
+            },
+            {
+              "fieldId": "Reorder Level",
+              "fieldValue": "={{ $json.items.reorder_level }}"
+            },
+            {
+              "fieldId": "Dimension Unit",
+              "fieldValue": "={{ $json.items.dimension_unit }}"
+            },
+            {
+              "fieldId": "Weight Unit",
+              "fieldValue": "={{ $json.items.weight_unit }}"
+            },
+            {
+              "fieldId": "Created Time",
+              "fieldValue": "={{ $json.items.created_time }}"
+            }
+          ]
+        }
+      },
+      "id": "b96e2231-06f7-4b7a-8d6e-5c734ecafb79",
+      "name": "Migrating to Supabase Table1",
+      "type": "n8n-nodes-base.supabase",
+      "position": [
+        2224,
+        384
+      ],
+      "typeVersion": 1,
+      "notes": "https://docs.google.com/spreadsheets/d/1lm2cYalIe3mt8w7XZf7ZGeAxjksRst_EddW4uJ2SOV8/edit?usp=sharing"
+    },
+    {
+      "parameters": {
+        "content": "## POST for Access Token\n- Go to Zoho API Console\n- Create a self client with the scope ZohoInventory.items.READ\n- Get Refresh Token, Client ID, and Client Secret\n- This node is using the Refresh Token to create an Access Token for later use",
+        "height": 200,
+        "width": 360,
+        "color": 4
+      },
+      "id": "83553668-5a8e-465f-9893-bd20d4391d00",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1360,
+        144
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Scheduled Trigger1": {
+      "main": [
+        [
+          {
+            "node": "POST to Zoho API for Access Token1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split for better organisation1": {
+      "main": [
+        [
+          {
+            "node": "Migrating to Supabase Table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to Zoho API for Access Token1": {
+      "main": [
+        [
+          {
+            "node": "GET to Zoho Inventory for Listed Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET to Zoho Inventory for Listed Items1": {
+      "main": [
+        [
+          {
+            "node": "Split for better organisation1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1ce9e1f7-7da9-4c79-b217-7f4f3e1aef2c",
+  "meta": {
+    "templateId": "5503",
+    "instanceId": "90875c0b34110a5edc13bdc717d28e4261485f1f1cbd289446549db71e3e1568"
+  },
+  "id": "MPA4PbRVAJh58E3D",
+  "tags": [
+    {
+      "createdAt": "2025-09-02T12:52:44.713Z",
+      "updatedAt": "2025-09-02T12:52:44.713Z",
+      "id": "twfHZLftaxk54cPj",
+      "name": "Create and Setup"
+    },
+    {
+      "name": "Downloaded",
+      "id": "i1zTjEOsmVWLFM9n",
+      "createdAt": "2025-09-06T03:01:37.278Z",
+      "updatedAt": "2025-09-06T03:01:37.278Z"
+    }
+  ]
+}

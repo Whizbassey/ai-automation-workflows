@@ -1,0 +1,228 @@
+{
+  "name": "SALES_Book Cal.com Meetings from ElevenLabs Voice Agent Conversations",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "User data provided is insufficient to book a meeting. Get complete data from user and try to book the meeting again.",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "bad_request",
+                "value": "User data provided is insufficient to book a meeting. Get complete data from user and try to book the meeting again."
+              }
+            ]
+          }
+        }
+      },
+      "id": "2969fa79-33b8-4bb4-9dd7-5212f66b413a",
+      "name": "Insufficient data response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        768,
+        400
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=Meeting booked for {{ $('Switch').item.json.body.start }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "c0a19ef9-9184-43f7-aad8-9c1fa3f0184b",
+      "name": "Success response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        960,
+        80
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.body.attendee_name && $json.body.start && $json.body.attendee_phone && $json.body.attendee_email && $json.body.attendee_company && $json.body.notes ? true : false }}",
+                    "rightValue": "",
+                    "id": "f6b589a8-925f-4636-96fa-8ef17474f0ae"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Book meeting"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "44b01bcd-81b0-4d03-a11b-4481132b2ce1",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "leftValue": "={{ $json.body.attendee_name && $json.body.start && $json.body.attendee_phone && $json.body.attendee_email && $json.body.attendee_company && $json.body.notes ? true : false }}",
+                    "rightValue": ""
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Insufficient data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4e7c6af1-bddf-4ea0-ad9a-e1921d53414c",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        560,
+        240
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "validate-booking-1234-abcd",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "267a71ac-8769-4db4-9017-97b3dd83141f",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        368,
+        240
+      ],
+      "webhookId": "44f259b3-3676-4c6f-a245-a34a5762eba1",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cal.com/v2/bookings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer cal_live_replace_me_with_api_key"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "cal-api-version",
+              "value": "2024-08-13"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"attendee\": {\n    \"language\": \"en\",\n    \"name\": \"{{ $json.body.attendee_name }}\",\n    \"timeZone\": \"{{ $json.body.attendee_timezone }}\",\n    \"email\": \"{{ $json.body.attendee_email }}\",\n    \"phoneNumber\": \"{{ $json.body.attendee_phone }}\"\n  },\n  \"start\": \"{{ $json.body.start }}\",\n  \"eventTypeId\": {{ $json.body.eventTypeId }},\n  \"bookingFieldsResponses\": {\n    \"phone\": \"{{ $json.body.attendee_phone }}\",\n    \"company\": \"{{ $json.body.attendee_company }}\",\n    \"notes\": \"{{ $json.body.notes }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "dac5a66e-5fad-4637-8640-29bc88f53038",
+      "name": "Create booking",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        768,
+        80
+      ],
+      "typeVersion": 4.2
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Create booking",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insufficient data response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create booking": {
+      "main": [
+        [
+          {
+            "node": "Success response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9561b58b-85b5-4826-9866-d754b7dbb98f",
+  "meta": {
+    "templateId": "5665",
+    "instanceId": "90875c0b34110a5edc13bdc717d28e4261485f1f1cbd289446549db71e3e1568"
+  },
+  "id": "3sWnVcFpyhvyjWi8",
+  "tags": [
+    {
+      "createdAt": "2025-09-02T12:52:44.713Z",
+      "updatedAt": "2025-09-02T12:52:44.713Z",
+      "id": "twfHZLftaxk54cPj",
+      "name": "Create and Setup"
+    }
+  ]
+}

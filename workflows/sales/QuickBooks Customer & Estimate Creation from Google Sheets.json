@@ -1,0 +1,289 @@
+{
+  "name": "SALES_Automate QuickBooks Customer & Estimate Creation from Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "number": [
+            {
+              "name": "Amount",
+              "value": "={{$json.Amount }}"
+            }
+          ],
+          "string": [
+            {
+              "name": "CustomerName",
+              "value": "={{$json['CustomerName']}}"
+            },
+            {
+              "name": "Email",
+              "value": "={{$json['Email']}}"
+            },
+            {
+              "name": "Phone",
+              "value": "={{$json['Phone']}}"
+            },
+            {
+              "name": "Company Name",
+              "value": "={{$json['Company Name']}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4cf9b22e-5514-4e34-9cb3-ed66411e6de0",
+      "name": "Set - normalize fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        784,
+        664
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 500,
+        "filters": {
+          "query": "=WHERE DisplayName = '{{ $json.CustomerName }}'\n\n"
+        }
+      },
+      "id": "bd6f49f4-27ec-4a52-afe3-453863d0a785",
+      "name": "QuickBooks - Find Customer",
+      "type": "n8n-nodes-base.quickbooks",
+      "position": [
+        1008,
+        664
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json[\"Id\"] }}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "id": "82e53cdc-6e3b-4df0-8f05-8b5802d97d69",
+      "name": "IF - Customer exists?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        1232,
+        664
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "displayName": "={{ $('Google Sheets Trigger').item.json.CustomerName }}",
+        "additionalFields": {
+          "CompanyName": "={{ $('Google Sheets Trigger').item.json['Company Name'] }}",
+          "PrimaryEmailAddr": "={{ $('Google Sheets Trigger').item.json.Email }}",
+          "PrimaryPhone": "={{ $('Google Sheets Trigger').item.json.Phone }}"
+        }
+      },
+      "id": "8631ac1c-94a8-47a4-bc7d-601b55c4e388",
+      "name": "QuickBooks - Create Customer (NEW)",
+      "type": "n8n-nodes-base.quickbooks",
+      "position": [
+        1424,
+        496
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "52f890dd-8f40-4e8d-abd6-ae844a01f97d",
+      "name": "No-op (end)",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1888,
+        672
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "{YOUR_GOOGLE_SHEETS_ID}",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{YOUR_GOOGLE_SHEETS_ID}/edit?usp=drivesdk",
+          "cachedResultName": "quickbooksCustomer"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/{YOUR_GOOGLE_SHEETS_ID}/edit#gid=0",
+          "cachedResultName": "quickbooksCustomer"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "id": "f98ee27a-73e2-4625-92f0-18fd2969760f",
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "position": [
+        560,
+        664
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Prerequisites ⚙️🔗\n\n- Connect your **Google OAuth2** credentials with both **Google Sheets** and **Google Drive** enabled.\n- Connect your **QuickBooks OAuth2** credentials.\n\nThese connections ensure seamless authentication and access to the required services throughout the workflow. 🔐🚀\n",
+        "height": 220,
+        "width": 400,
+        "color": 4
+      },
+      "id": "26f5e203-a313-4bcc-a7db-dcaaf10ce0fa",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        576,
+        416
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "estimate",
+        "operation": "create",
+        "CustomerRef": "={{ $json.Id }}",
+        "Line": [
+          {
+            "Amount": "={{ $('Google Sheets Trigger').item.json.Amount}}",
+            "itemId": "15",
+            "LineNum": 1,
+            "DetailType": "SalesItemLineDetail",
+            "TaxCodeRef": "TAX",
+            "Description": "Sales Estimate"
+          }
+        ],
+        "additionalFields": {}
+      },
+      "id": "242b1395-cbd2-414f-bccf-ab1a8921778b",
+      "name": "Create an estimate",
+      "type": "n8n-nodes-base.quickbooks",
+      "position": [
+        1664,
+        496
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Create an estimate": {
+      "main": [
+        [
+          {
+            "node": "No-op (end)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set - normalize fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Customer exists?": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks - Create Customer (NEW)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No-op (end)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - normalize fields": {
+      "main": [
+        [
+          {
+            "node": "QuickBooks - Find Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks - Find Customer": {
+      "main": [
+        [
+          {
+            "node": "IF - Customer exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickBooks - Create Customer (NEW)": {
+      "main": [
+        [
+          {
+            "node": "Create an estimate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "994c9fda-6bfe-40d4-9d99-5ca21fa8d61e",
+  "meta": {
+    "templateId": "7273",
+    "instanceId": "90875c0b34110a5edc13bdc717d28e4261485f1f1cbd289446549db71e3e1568"
+  },
+  "id": "efuGlaM7ekw9p9gK",
+  "tags": [
+    {
+      "createdAt": "2025-09-02T12:52:44.713Z",
+      "updatedAt": "2025-09-02T12:52:44.713Z",
+      "id": "twfHZLftaxk54cPj",
+      "name": "Create and Setup"
+    },
+    {
+      "name": "Downloaded",
+      "id": "i1zTjEOsmVWLFM9n",
+      "createdAt": "2025-09-06T03:01:37.278Z",
+      "updatedAt": "2025-09-06T03:01:37.278Z"
+    }
+  ]
+}

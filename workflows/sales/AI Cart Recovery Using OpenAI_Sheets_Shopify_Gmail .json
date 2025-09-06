@@ -1,0 +1,415 @@
+{
+  "name": "SALES_Smart Shopify Agent: AI-Powered Abandoned Cart Recovery",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a friendly and persuasive abandoned cart recovery email for a customer named {{ $json.checkouts[0].customer.first_name }} {{ $json.checkouts[0].customer.last_name }}. The cart contains: {{ $json.checkouts }}. Encourage them to complete their purchase with a subtle reminder and optionally a discount. do not include subject and don't add extra stuff\n",
+        "options": {}
+      },
+      "id": "ecbb99d3-d896-48cc-b6b1-72e178329a3c",
+      "name": "Generate Recovery Email",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        3296,
+        448
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1H83mXsl_gjgwOWrwNYak6ISihoWsgx-EFxSbPlvQx7M",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H83mXsl_gjgwOWrwNYak6ISihoWsgx-EFxSbPlvQx7M/edit?usp=drivesdk",
+          "cachedResultName": "Shopify abandoned checkout"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1H83mXsl_gjgwOWrwNYak6ISihoWsgx-EFxSbPlvQx7M/edit#gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "columns": {
+          "value": {
+            "email": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].email }}",
+            "customer": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].customer.first_name }} {{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].customer.last_name }}",
+            "GPT response": "={{ $('Generate Recovery Email').item.json.output }}"
+          },
+          "schema": [
+            {
+              "id": "customer",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "customer",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "email",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "GPT response",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "GPT response",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "49b21bce-bece-40a3-b9c0-86e4adc3e167",
+      "name": "Log Email Activity",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        3872,
+        552
+      ],
+      "typeVersion": 4.5
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].email }}",
+        "subject": "=You left something behind, {{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].customer.first_name }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "e55ea939-10fd-423b-99ef-90a89b0effc8",
+      "name": "Send Email to Customer",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        3648,
+        552
+      ],
+      "webhookId": "fb71183d-2a4d-4eca-a73b-225d4cfa4d2d",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {},
+      "id": "7a5fce94-6ae8-43a3-9e45-b15e1d6ecf61",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        3360,
+        848
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {},
+      "id": "e8966160-eb7b-470c-9754-52048cb01551",
+      "name": "Start Workflow",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        2176,
+        700
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://your-store.myshopify.com/admin/api/2023-10/checkouts.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "abandoned"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "your-access-token"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7ac542e0-5379-4416-a33e-c2ba13947a30",
+      "name": "Get Initial Abandoned Checkout",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2400,
+        700
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "hours"
+      },
+      "id": "2409af7c-7df8-4825-b31a-7d2f4bb84a59",
+      "name": "Wait 1 Hour",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        2624,
+        700
+      ],
+      "webhookId": "12d15136-8aa1-4177-a572-04da4b88b28c",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "url": "https://your-store.myshopify.com/admin/api/2023-10/checkouts.json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "abandoned"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "your-access-token"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "449c40d4-e1fa-4984-9b3b-c9dd6863e71a",
+      "name": "Recheck Abandoned Checkouts",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        2848,
+        700
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "8119001f-78d5-40b4-bcd7-8f13495b6d51",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].id }}",
+              "rightValue": "={{ $json.checkouts[0].id }}"
+            },
+            {
+              "id": "229cf7e1-5490-4bd0-9004-2baadbe15b4f",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].id }}",
+              "rightValue": "={{ $json.checkouts[1].id }}"
+            },
+            {
+              "id": "163c04b1-6e4b-42da-9a5f-2168c4148023",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].id }}",
+              "rightValue": "={{ $json.checkouts[2].id }}"
+            },
+            {
+              "id": "42461258-29f4-4dc2-9c34-598654debaa6",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].id }}",
+              "rightValue": "={{ $json.checkouts[3].id }}"
+            },
+            {
+              "id": "a0c9d76f-66fc-454b-b59c-990291c85ebf",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $('Get Initial Abandoned Checkout').item.json.checkouts[0].id }}",
+              "rightValue": "={{ $json.checkouts[4].id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "023ea763-155f-4c3c-8c3b-d7de0ef1687a",
+      "name": "Is Customer Still Abandoned?",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        3072,
+        700
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "0b156bce-50ec-4e56-9c67-be4b34791b3e",
+      "name": "Recovery Email Writer",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        3368,
+        672
+      ],
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "ldjRQxJmOvT8B3NM",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Wait 1 Hour": {
+      "main": [
+        [
+          {
+            "node": "Recheck Abandoned Checkouts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Workflow": {
+      "main": [
+        [
+          {
+            "node": "Get Initial Abandoned Checkout",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email to Customer": {
+      "main": [
+        [
+          {
+            "node": "Log Email Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Recovery Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recheck Abandoned Checkouts": {
+      "main": [
+        [
+          {
+            "node": "Is Customer Still Abandoned?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Customer Still Abandoned?": {
+      "main": [
+        [
+          {
+            "node": "Generate Recovery Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Initial Abandoned Checkout": {
+      "main": [
+        [
+          {
+            "node": "Wait 1 Hour",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recovery Email Writer": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Recovery Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "995523d2-4529-4ee8-9ed2-1e090de8f564",
+  "meta": {
+    "templateId": "4396",
+    "instanceId": "90875c0b34110a5edc13bdc717d28e4261485f1f1cbd289446549db71e3e1568"
+  },
+  "id": "1iaK74vh4PIfu1pQ",
+  "tags": [
+    {
+      "name": "Downloaded",
+      "id": "i1zTjEOsmVWLFM9n",
+      "createdAt": "2025-09-06T03:01:37.278Z",
+      "updatedAt": "2025-09-06T03:01:37.278Z"
+    }
+  ]
+}
